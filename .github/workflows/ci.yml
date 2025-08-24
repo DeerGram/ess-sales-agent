@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install
+        run: npx pnpm@9 install --frozen-lockfile=false
+
+      - name: Lint
+        run: npx pnpm@9 run lint
+
+      - name: Typecheck
+        run: npx pnpm@9 run -r typecheck
+
+      - name: Unit tests
+        run: npx pnpm@9 run -r test
+
+      - name: Build
+        run: npx pnpm@9 run -r build
+
+

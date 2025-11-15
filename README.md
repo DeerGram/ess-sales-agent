@@ -1,71 +1,64 @@
-## ESS Sales Agent – Setup
+# EMBER – Adaptive AI Agent Platform
 
-### Local development
-1. Create `.env.local` in the repo root from the template below and populate values (Twilio, Airtable, ConvertKit, ElevenLabs, GCP/Vertex).
-2. Ensure Node 20+ and pnpm are available (or use `npx pnpm@9`).
-3. Install and test:
+EMBER is a one-page, 3D-enhanced conversational agent that adapts to every user interaction in real-time. The platform pairs a high-fidelity React front-end (React, Three.js, Zustand, SWR) with a TypeScript/Express backend that orchestrates chat flows, learning pipelines, settings intelligence, and a future sub-agent execution engine.
 
+## Repository Layout
+
+```
+frontend/   # React 19-ready Vite app with particle hero and chat shell
+backend/    # Express + TypeScript API with streaming chat and service layer
+tests/      # Cross-cutting integration/end-to-end harness (placeholder)
+docs/       # Living documentation, specs, and runbooks
+```
+
+Key reference: `docs/EMBER-master.md` mirrors the full production blueprint supplied for Cursor-driven generation.
+
+## Getting Started
+
+1. Ensure Node.js 20+ and pnpm 9+ are installed.
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+3. Copy `.env.example` to `.env` in `backend/` and provide valid secrets.
+4. Launch services locally via Docker (recommended):
+   ```bash
+   docker compose up --build
+   ```
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:5000
+
+### Running Individually
+
+Frontend:
 ```bash
-npx pnpm@9 install
-npx pnpm@9 -r build
-npx pnpm@9 -r test
+cd frontend
+pnpm dev
 ```
-
-#### .env.local template
-Copy the following into `.env.local` (never commit real secrets):
-
-```
-TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_MESSAGING_SID=MGxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_VOICE_CALLER_ID=+1xxxxxxxxxx
-
-AIRTABLE_API_KEY=keyxxxxxxxxxxxxxxxx
-AIRTABLE_BASE_ID=appxxxxxxxxxxxxxx
-AIRTABLE_LEADS_TABLE=Leads
-AIRTABLE_INTERACTIONS_TABLE=Interactions
-
-CONVERTKIT_API_KEY=ck_xxxxxxxxxxxxxxxx
-CONVERTKIT_API_SECRET=cs_xxxxxxxxxxxxxxxx
-
-ELEVENLABS_API_KEY=eleven_xxxxxxxxxxxxxxxx
-ELEVENLABS_VOICE_ID=xxxxxxxxxxxxxxxx
-
-GCP_PROJECT_ID=your-project
-GCP_LOCATION=us-central1
-GEMINI_MODEL=projects/your-project/locations/us-central1/publishers/google/models/gemini-1.5-pro
-```
-
-### GCP Secret Manager (staging/prod)
-1. Enable Secret Manager and Vertex AI APIs:
+Backend:
 ```bash
-gcloud services enable secretmanager.googleapis.com aiplatform.googleapis.com
+cd backend
+pnpm dev
 ```
-2. Create secrets and add first versions (repeat for each key):
-```bash
-gcloud secrets create TWILIO_AUTH_TOKEN --replication-policy=automatic
-printf "%s" "your_twilio_auth_token" | gcloud secrets versions add TWILIO_AUTH_TOKEN --data-file=-
-```
-3. Grant access to your Cloud Run service account:
-```bash
-SA=cloud-run-ess@YOUR_PROJECT.iam.gserviceaccount.com
-for S in TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN TWILIO_MESSAGING_SID TWILIO_VOICE_CALLER_ID \
-          AIRTABLE_API_KEY AIRTABLE_BASE_ID AIRTABLE_LEADS_TABLE AIRTABLE_INTERACTIONS_TABLE \
-          CONVERTKIT_API_KEY CONVERTKIT_API_SECRET \
-          ELEVENLABS_API_KEY ELEVENLABS_VOICE_ID \
-          GCP_PROJECT_ID GCP_LOCATION GEMINI_MODEL; do
-  gcloud secrets add-iam-policy-binding $S \
-    --member="serviceAccount:${SA}" \
-    --role="roles/secretmanager.secretAccessor"
-done
-```
-4. At deploy, map secrets to env vars (Terraform module will handle this automatically).
 
-### Vertex AI / Gemini
-- Local: `gcloud auth application-default login` and `gcloud config set project <PROJECT>`.
-- Model resource example: `projects/<PROJECT>/locations/us-central1/publishers/google/models/gemini-1.5-pro`.
+## Scripts
 
-### Terraform
-- See `infrastructure/terraform/` for provider config, variables, and Secret Manager wiring.
+- `pnpm lint` – Runs ESLint across workspaces.
+- `pnpm test` – Runs unit tests (Vitest) for frontend and backend.
+- `pnpm build` – Creates production bundles for both services.
+- `pnpm dev` – Starts the frontend dev server (backend run separately).
 
+## Testing Strategy
 
+The repo seeds Vitest + Testing Library (frontend) and Vitest + Supertest (backend). Additional suites (Playwright, contract tests) should be wired under `tests/` as phases progress (see `docs/EMBER-master.md`).
+
+## Deployment
+
+`docker-compose.yml` provisions a local stack (frontend, backend, Postgres, Redis). Production deployment should shift to containerized workloads behind an API gateway with CDN/VPC hardening per the blueprint.
+
+## Documentation
+
+- `docs/EMBER-master.md` – Canonical spec.
+- `blueprint.md` – Running engineering journal with dated entries, decisions, and references.
+
+Contributions must update `blueprint.md` to capture rationale, links, and follow-up items.

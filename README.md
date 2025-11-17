@@ -7,7 +7,7 @@ EMBER is a one-page, 3D-enhanced conversational agent that adapts to every user 
 ```
 frontend/   # React 19-ready Vite app with particle hero and chat shell
 backend/    # Express + TypeScript API with streaming chat and service layer
-tests/      # Cross-cutting integration/end-to-end harness (placeholder)
+tests/      # Playwright E2E, API contract, and k6 load harnesses
 docs/       # Living documentation, specs, and runbooks
 ```
 
@@ -45,12 +45,22 @@ pnpm dev
 
 - `pnpm lint` – Runs ESLint across workspaces.
 - `pnpm test` – Runs unit tests (Vitest) for frontend and backend.
+- `pnpm test:e2e` – Executes Playwright API tests (requires running backend + `API_BASE_URL`).
+- `pnpm test:contract` – Runs Zod-backed contract tests against the live API.
+- `pnpm test:load` – Runs the k6 scenario defined under `tests/load`.
 - `pnpm build` – Creates production bundles for both services.
 - `pnpm dev` – Starts the frontend dev server (backend run separately).
 
 ## Testing Strategy
 
-The repo seeds Vitest + Testing Library (frontend) and Vitest + Supertest (backend). Additional suites (Playwright, contract tests) should be wired under `tests/` as phases progress (see `docs/EMBER-master.md`).
+The repo seeds:
+
+- **Unit**: Vitest + Testing Library (frontend) and Vitest + Supertest (backend).
+- **E2E**: Playwright API tests in `tests/e2e` (requires the backend running with reachable `API_BASE_URL`).
+- **Contract**: `tests/contract` validates response envelopes with Zod schemas so the frontend can safely depend on payloads.
+- **Load**: `tests/load/chat.ts` is a k6 script for smoke-level throughput checks.
+
+See `docs/EMBER-master.md` for the longer-term test matrix.
 
 ## Deployment
 

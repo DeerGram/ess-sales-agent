@@ -10,6 +10,9 @@
     "format": "prettier --write .",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter ember-tests test:e2e",
+    "test:contract": "pnpm --filter ember-tests test:contract",
+    "test:load": "pnpm --filter ember-tests test:load",
     "build": "pnpm -r build",
     "dev": "pnpm --filter frontend dev"
   },

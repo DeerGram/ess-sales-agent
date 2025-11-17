@@ -49,4 +49,6 @@ export interface StreamChunk {
   component?: MessageComponentPayload;
   aliveState?: Partial<AliveState>;
   done?: boolean;
+  eventType?: 'setting_change' | 'agent_created' | 'learning_update';
+  payload?: Record<string, unknown>;
 }

@@ -1,7 +1,5 @@
 import { createServer } from './server';
-import { loadEnv } from './utils/env';
-
-const env = loadEnv();
+import { env } from './config';
 const app = createServer();
 
 app.listen(env.PORT, () => {

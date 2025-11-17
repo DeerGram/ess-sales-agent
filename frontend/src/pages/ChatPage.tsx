@@ -5,8 +5,8 @@ import ParticleHero from '../components/organisms/ParticleHero';
 import ChatInput from '../components/molecules/ChatInput';
 import { useChatStream } from '../hooks/useChatStream';
 import { useAliveState } from '../hooks/useAliveState';
-import type { Message } from '../lib/types';
-import { useEmberStore } from '../lib/store';
+import type { Message, StreamChunk } from '../lib/types';
+import { useEmberStore, type Theme } from '../lib/store';
 
 const createMessageId = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`);
 
@@ -18,6 +18,10 @@ const ChatPage = () => {
   const { sendMessage } = useChatStream();
   const theme = useEmberStore((state) => state.theme);
   const setTheme = useEmberStore((state) => state.setTheme);
+  const addPendingAgent = useEmberStore((state) => state.addPendingAgent);
+  const pendingAgents = useEmberStore((state) => state.pendingAgents);
+  const setLastSettingChange = useEmberStore((state) => state.setLastSettingChange);
+  const lastSettingChange = useEmberStore((state) => state.lastSettingChange);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -28,6 +32,69 @@ const ChatPage = () => {
       setTheme('dark');
     }
   }, [aliveState.learning.justLearned, aliveState.learning.whatLearned, setTheme]);
+
+  const handleEventChunk = useCallback(
+    (chunk: StreamChunk) => {
+      if (!chunk.eventType) {
+        return;
+      }
+
+      if (chunk.eventType === 'setting_change' && chunk.payload) {
+        const key = String(chunk.payload.key ?? '');
+        const value = chunk.payload.value;
+        const confidence = Number(chunk.payload.confidence ?? 0);
+        setLastSettingChange({ key, value, confidence });
+
+        if (key === 'theme' && (value === 'dark' || value === 'light')) {
+          setTheme(value as Theme);
+        }
+
+        if (chunk.content) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: createMessageId(),
+              sender: 'system',
+              content: chunk.content,
+              createdAt: Date.now(),
+            },
+          ]);
+        }
+      }
+
+      if (chunk.eventType === 'agent_created' && chunk.payload) {
+        addPendingAgent({
+          id: String(chunk.payload.id ?? createMessageId()),
+          name: String(chunk.payload.name ?? 'New Agent'),
+          status: String(chunk.payload.status ?? 'scheduled'),
+          description: chunk.payload.reason as string | undefined,
+        });
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: createMessageId(),
+            sender: 'system',
+            content: `Spawning agent ${chunk.payload.name ?? ''}`.trim(),
+            createdAt: Date.now(),
+          },
+        ]);
+      }
+
+      if (chunk.eventType === 'learning_update' && chunk.content) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: createMessageId(),
+            sender: 'system',
+            content: chunk.content,
+            createdAt: Date.now(),
+          },
+        ]);
+      }
+    },
+    [addPendingAgent, setLastSettingChange, setMessages, setTheme],
+  );
 
   const handleSendMessage = useCallback(async () => {
     const trimmed = inputValue.trim();
@@ -63,6 +130,10 @@ const ChatPage = () => {
         },
         {
           onChunk: (chunk) => {
+              if (chunk.eventType) {
+                handleEventChunk(chunk);
+              }
+
             if (chunk.aliveState) {
               updateAliveState(chunk.aliveState);
             }
@@ -130,14 +201,21 @@ const ChatPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [inputValue, isLoading, sendMessage, updateAliveState]);
+  }, [handleEventChunk, inputValue, isLoading, sendMessage, updateAliveState]);
 
   const statusText = useMemo(() => {
     if (isCelebrating) {
       return aliveState.learning.whatLearned ?? 'EMBER just learned something new';
     }
+    if (pendingAgents.length > 0) {
+      const agent = pendingAgents[pendingAgents.length - 1];
+      return `Spawning ${agent.name}…`;
+    }
     if (aliveState.agentCreation.isCreating) {
       return `Spawning ${aliveState.agentCreation.agentName ?? 'new agent'}…`;
+    }
+    if (lastSettingChange) {
+      return `Adjusting ${lastSettingChange.key} preferences`;
     }
     switch (aliveState.behavior) {
       case 'listening':
@@ -153,7 +231,7 @@ const ChatPage = () => {
       default:
         return 'Standing by';
     }
-  }, [aliveState, isCelebrating]);
+  }, [aliveState, isCelebrating, lastSettingChange, pendingAgents]);
 
   const containerClass = useMemo(
     () =>

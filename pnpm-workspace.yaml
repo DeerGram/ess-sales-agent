@@ -1,7 +1,4 @@
 packages:
-  - apps/*
-  - packages/*
-  - infrastructure/*
-  - e2e
-
-
+  - frontend
+  - backend
+  - tests

@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String        @id @default(uuid())
+  email       String?       @unique
+  createdAt   DateTime      @default(now())
+  lastActive  DateTime?
+  settings    Json?
+  preferences Json?
+  learning    Json?
+  conversations Conversation[]
+  messages    Message[]
+  agents      Agent[]
+  settingsHistory Setting[]
+  integrations Integration[]
+}
+
+model Conversation {
+  id        String    @id
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId String
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  sender         String
+  content        String
+  component      Json?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([userId])
+}
+
+model Agent {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  name        String
+  description String?
+  schedule    Json?
+  task        Json?
+  actions     Json?
+  status      String
+  createdAt   DateTime @default(now())
+  createdByAgent Boolean @default(false)
+
+  @@index([userId])
+}
+
+model Setting {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  key         String
+  value       Json
+  changeSource Json?
+  history     Json?
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, key])
+}
+
+model Integration {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  service     String
+  auth        Json
+  accountInfo Json?
+  sync        Json?
+  status      String
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}

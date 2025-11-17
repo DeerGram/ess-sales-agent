@@ -1,32 +1,30 @@
 {
-  "name": "ess-sales-agent",
+  "name": "ember",
+  "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@9",
-  "workspaces": [
-    "apps/*",
-    "packages/*",
-    "infrastructure/*",
-    "e2e"
-  ],
+  "description": "EMBER - Adaptive AI Agent Platform",
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@9.10.0",
   "scripts": {
+    "format": "prettier --write .",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter ember-tests test:e2e",
+    "test:contract": "pnpm --filter ember-tests test:contract",
+    "test:load": "pnpm --filter ember-tests test:load",
     "build": "pnpm -r build",
-    "dev": "pnpm --filter @ess/router-api dev",
-    "lint": "eslint \"**/*.ts\"",
-    "test": "vitest run",
-    "typecheck": "pnpm -r typecheck"
+    "dev": "pnpm --filter frontend dev"
   },
   "devDependencies": {
-    "@types/node": "^20.14.11",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-security": "^3.0.1",
-    "prettier": "^3.3.3",
-    "tsup": "^8.2.4",
-    "tsx": "^4.19.0",
-    "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
+    "eslint": "^9.12.0",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.3.2",
+    "typescript": "^5.4.5"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx,json,md,css}": [
+      "prettier --write"
+    ]
   }
 }
-
-

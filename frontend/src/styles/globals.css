@@ -1,0 +1,32 @@
+:root {
+  --color-primary: #6366f1;
+  --color-secondary: #8b5cf6;
+  --color-accent: #ec4899;
+  --color-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --color-surface: rgba(255, 255, 255, 0.12);
+  --color-text: #f8fafc;
+  --color-text-secondary: #cbd5f5;
+  --color-border: rgba(255, 255, 255, 0.2);
+
+  --glass-blur: 24px;
+  --glass-opacity: 0.12;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  --font-family: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'SFMono-Regular', monospace;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background: #020617;
+}
+
+* {
+  box-sizing: border-box;
+}
